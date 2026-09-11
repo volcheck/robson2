@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BirthRecord, ChildRecord, Department, Doctor, User } from '../types';
+import { BirthRecord, ChildRecord, Department, Doctor, User, ROBSON_GROUPS, ROBSON_GROUP_LABELS } from '../types';
 import { createBirthRecord, updateBirthRecord, getDepartments, getDoctors, getChildren } from '../services/api';
 import ChildrenTab from './ChildrenTab';
 
@@ -20,7 +20,7 @@ const emptyRecord: Partial<BirthRecord> = {
   delivery_date: '',
   delivery_time: '',
   discharge_date: '',
-  robson_code: 1,
+  robson_code: '1',
   is_cesarean: false,
   vaginal_delivery_method: '',
   gestational_age_weeks: 40,
@@ -165,12 +165,12 @@ const BirthRecordModal: React.FC<BirthRecordModalProps> = ({ isOpen, onClose, re
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Группа по Робсону *</label>
                 <select
-                  value={formData.robson_code || 1}
-                  onChange={(e) => handleChange('robson_code', parseInt(e.target.value))}
+                  value={formData.robson_code || '1'}
+                  onChange={(e) => handleChange('robson_code', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
                 >
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>Группа {n}</option>
+                  {ROBSON_GROUPS.map((g) => (
+                    <option key={g} value={g}>{g} — {ROBSON_GROUP_LABELS[g]}</option>
                   ))}
                 </select>
               </div>

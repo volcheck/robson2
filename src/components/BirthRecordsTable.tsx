@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { BirthRecord, Department, Doctor, User } from '../types';
+import { BirthRecord, Department, Doctor, User, ROBSON_GROUPS, ROBSON_GROUP_LABELS } from '../types';
 import { getBirthRecords, deleteBirthRecord, getDepartments, getDoctors } from '../services/api';
 
 interface BirthRecordsTableProps {
@@ -111,8 +111,8 @@ const BirthRecordsTable: React.FC<BirthRecordsTableProps> = ({ user, onEdit, onA
               className="border border-gray-300 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Все группы Робсона</option>
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>Группа {n}</option>
+              {ROBSON_GROUPS.map((g) => (
+                <option key={g} value={g}>{g}</option>
               ))}
             </select>
             <select

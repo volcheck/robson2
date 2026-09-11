@@ -58,7 +58,7 @@ function getRecords(array $user): void {
     // Фильтр по группе Робсона
     if (!empty($_GET['robson_code'])) {
         $where[] = 'br.robson_code = ?';
-        $params[] = (int)$_GET['robson_code'];
+        $params[] = $_GET['robson_code'];
     }
     
     // Фильтр по методу родоразрешения
@@ -88,7 +88,7 @@ function getRecords(array $user): void {
         $record['is_cesarean'] = (bool)$record['is_cesarean'];
         $record['has_uterine_scar'] = (bool)$record['has_uterine_scar'];
         $record['is_contracted'] = (bool)$record['is_contracted'];
-        $record['robson_code'] = (int)$record['robson_code'];
+        $record['robson_code'] = (string)$record['robson_code'];
         $record['gestational_age_weeks'] = (int)$record['gestational_age_weeks'];
         $record['previous_cesarean_count'] = (int)$record['previous_cesarean_count'];
         $record['id'] = (int)$record['id'];
@@ -121,7 +121,7 @@ function getRecord(int $id, array $user): void {
     $record['is_cesarean'] = (bool)$record['is_cesarean'];
     $record['has_uterine_scar'] = (bool)$record['has_uterine_scar'];
     $record['is_contracted'] = (bool)$record['is_contracted'];
-    $record['robson_code'] = (int)$record['robson_code'];
+    $record['robson_code'] = (string)$record['robson_code'];
     $record['gestational_age_weeks'] = (int)$record['gestational_age_weeks'];
     $record['previous_cesarean_count'] = (int)$record['previous_cesarean_count'];
     $record['id'] = (int)$record['id'];
@@ -174,7 +174,7 @@ function createRecord(array $data, array $user): void {
         $data['delivery_date'] ?? null,
         $data['delivery_time'] ?? null,
         $data['discharge_date'] ?? null,
-        $data['robson_code'] ?? 1,
+        $data['robson_code'] ?? '1',
         !empty($data['is_cesarean']) ? 1 : 0,
         $data['vaginal_delivery_method'] ?? '',
         $data['gestational_age_weeks'] ?? 40,
@@ -246,7 +246,7 @@ function updateRecord(array $data, array $user): void {
         $data['delivery_date'] ?? null,
         $data['delivery_time'] ?? null,
         $data['discharge_date'] ?? null,
-        $data['robson_code'] ?? 1,
+        $data['robson_code'] ?? '1',
         !empty($data['is_cesarean']) ? 1 : 0,
         $data['vaginal_delivery_method'] ?? '',
         $data['gestational_age_weeks'] ?? 40,

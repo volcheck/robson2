@@ -39,6 +39,29 @@ export interface ChildRecord {
   department_id: number | null;
 }
 
+// Группы по классификации Робсона
+export const ROBSON_GROUPS = [
+  '1', '2a', '2b', '3', '4a', '4b', '5.1', '5.2', '6', '7', '8', '9', '10'
+] as const;
+
+export type RobsonGroup = typeof ROBSON_GROUPS[number];
+
+export const ROBSON_GROUP_LABELS: Record<string, string> = {
+  '1': '1 — Nullipara, singleton, cephalic, ≥37 нед., спонтанные роды',
+  '2a': '2a — Nullipara, singleton, cephalic, ≥37 нед., КС до начала родов',
+  '2b': '2b — Nullipara, singleton, cephalic, ≥37 нед., КС после начала родов',
+  '3': '3 — Multipara (без КС), singleton, cephalic, ≥37 нед., спонтанные роды',
+  '4a': '4a — Multipara (без КС), singleton, cephalic, ≥37 нед., КС до начала родов',
+  '4b': '4b — Multipara (без КС), singleton, cephalic, ≥37 нед., КС после начала родов',
+  '5.1': '5.1 — Предыдущее КС, singleton, cephalic, ≥37 нед., спонтанные роды',
+  '5.2': '5.2 — Предыдущее КС, ≥37 нед., КС (до или после начала родов)',
+  '6': '6 — Все nulliparae с тазовым предлежанием',
+  '7': '7 — Все multiparae с тазовым предлежанием (вкл. с КС в анамнезе)',
+  '8': '8 — Все многоплодные беременности',
+  '9': '9 — Все с аномалиями предлежания (поперечное, косое)',
+  '10': '10 — Все одиночные, cephalic, <37 нед.',
+};
+
 export interface BirthRecord {
   id?: number;
   organization_id: number;
@@ -49,7 +72,7 @@ export interface BirthRecord {
   delivery_date: string;
   delivery_time: string;
   discharge_date: string;
-  robson_code: number;
+  robson_code: string;
   is_cesarean: boolean;
   vaginal_delivery_method: 'spontaneous' | 'vacuum' | 'forceps' | '';
   gestational_age_weeks: number;

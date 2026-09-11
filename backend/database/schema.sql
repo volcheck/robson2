@@ -76,7 +76,7 @@ CREATE TABLE birth_records (
     discharge_date DATE NULL COMMENT 'Дата выписки',
     
     -- Классификация
-    robson_code TINYINT NOT NULL DEFAULT 1 COMMENT 'Код по классификации Робсона (1-10)',
+    robson_code VARCHAR(10) NOT NULL DEFAULT '1' COMMENT 'Код по классификации Робсона (1, 2a, 2b, 3, 4a, 4b, 5.1, 5.2, 6, 7, 8, 9, 10)',
     
     -- Метод родоразрешения
     is_cesarean BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Кесарево сечение',
@@ -122,6 +122,7 @@ CREATE TABLE birth_records (
     INDEX idx_organization (organization_id),
     INDEX idx_delivery_date (delivery_date),
     INDEX idx_robson (robson_code),
+    -- Допустимые значения: 1, 2a, 2b, 3, 4a, 4b, 5.1, 5.2, 6, 7, 8, 9, 10
     INDEX idx_medical_record (medical_record_number),
     INDEX idx_cesarean (is_cesarean),
     INDEX idx_vaginal_method (vaginal_delivery_method)

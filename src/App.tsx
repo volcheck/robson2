@@ -5,6 +5,7 @@ import {
   demoLogin, demoBirthRecords, demoDashboardData,
   demoDepartments, demoDoctors
 } from './services/demoData';
+import { ROBSON_GROUPS, ROBSON_GROUP_LABELS } from './types';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import BirthRecordsTable from './components/BirthRecordsTable';
@@ -273,7 +274,7 @@ function DemoTable({ records, departments, doctors, onEdit, onAdd, onPrint, onDe
 
   const filtered = records.filter(r => {
     if (search && !r.medical_record_number.includes(search)) return false;
-    if (filterRobson && r.robson_code !== parseInt(filterRobson)) return false;
+    if (filterRobson && r.robson_code !== filterRobson) return false;
     if (filterMethod === '1' && !r.is_cesarean) return false;
     if (filterMethod === '0' && r.is_cesarean) return false;
     return true;
@@ -337,8 +338,8 @@ function DemoTable({ records, departments, doctors, onEdit, onAdd, onPrint, onDe
               className="border border-gray-300 rounded-lg text-sm px-3 py-2 focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Все группы Робсона</option>
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>Группа {n}</option>
+              {ROBSON_GROUPS.map((g) => (
+                <option key={g} value={g}>{g}</option>
               ))}
             </select>
             <select
@@ -445,7 +446,7 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
     } else {
       setFormData({
         medical_record_number: '',
-        robson_code: 1,
+        robson_code: '1',
         is_cesarean: false,
         vaginal_delivery_method: '',
         gestational_age_weeks: 40,
@@ -515,10 +516,10 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Группа по Робсону *</label>
-                <select value={formData.robson_code || 1} onChange={(e) => handleChange('robson_code', parseInt(e.target.value))}
+                <select value={formData.robson_code || '1'} onChange={(e) => handleChange('robson_code', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>Группа {n}</option>
+                  {ROBSON_GROUPS.map((g) => (
+                    <option key={g} value={g}>{g} — {ROBSON_GROUP_LABELS[g]}</option>
                   ))}
                 </select>
               </div>
