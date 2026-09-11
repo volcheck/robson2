@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /
+
+# Если файл или директория существуют - отдаём напрямую
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Все остальные запросы - на index.html (SPA)
+RewriteRule ^ index.html [QSA,L]
