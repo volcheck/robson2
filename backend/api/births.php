@@ -1,6 +1,8 @@
 <?php
 /**
  * API для работы с записями о родах
+ * - Просмотр: все роли (superadmin, owner, observer)
+ * - Создание/редактирование/удаление: только owner и superadmin
  */
 require_once __DIR__ . '/config.php';
 
@@ -9,7 +11,7 @@ $data = getRequestData();
 $action = $data['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 
-// GET - получение списка или одной записи
+// GET - получение списка или одной записи (доступно всем)
 if ($method === 'GET') {
     if (isset($_GET['id'])) {
         getRecord((int)$_GET['id'], $user);
@@ -19,7 +21,11 @@ if ($method === 'GET') {
     exit;
 }
 
-// POST - создание, обновление, удаление
+// POST - создание, обновление, удаление (только для owner и superadmin)
+if (!canEdit($user)) {
+    jsonError('Недостаточно прав. Наблюдатель не может редактировать записи', 403);
+}
+
 switch ($action) {
     case 'create':
         createRecord($data, $user);

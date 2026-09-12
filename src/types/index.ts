@@ -1,10 +1,46 @@
 export interface User {
   id: number;
   username: string;
-  role: 'superadmin' | 'admin' | 'user';
+  role: 'superadmin' | 'owner' | 'observer';
   organization_id: number | null;
   organization_name?: string;
 }
+
+// Права доступа
+export const ROLE_PERMISSIONS = {
+  superadmin: {
+    label: 'Суперадминистратор',
+    canCreateOrganizations: true,
+    canManageUsers: true, // может назначать владельцев
+    canManageDepartments: true, // для любой организации
+    canManageDoctors: true, // для любой организации
+    canEditRecords: true, // для любой организации
+    canViewRecords: true, // для любой организации
+    canViewDashboard: true, // для любой организации
+  },
+  owner: {
+    label: 'Владелец организации',
+    canCreateOrganizations: false,
+    canManageUsers: true, // назначает наблюдателей
+    canManageDepartments: true, // своей организации
+    canManageDoctors: true, // своей организации
+    canEditRecords: true, // своей организации
+    canViewRecords: true, // своей организации
+    canViewDashboard: true, // своей организации
+  },
+  observer: {
+    label: 'Наблюдатель',
+    canCreateOrganizations: false,
+    canManageUsers: false,
+    canManageDepartments: false,
+    canManageDoctors: false,
+    canEditRecords: false,
+    canViewRecords: true, // только просмотр
+    canViewDashboard: true, // только просмотр
+  },
+} as const;
+
+export type Role = keyof typeof ROLE_PERMISSIONS;
 
 export interface Organization {
   id: number;

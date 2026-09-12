@@ -168,18 +168,30 @@ export const demoLogin = (username: string, password: string) => {
         id: 1,
         username: 'admin',
         role: 'superadmin' as const,
+        organization_id: null,
+        organization_name: undefined,
+      }
+    };
+  }
+  if (username === 'owner' && password === 'owner123') {
+    return {
+      token: 'demo-token-456',
+      user: {
+        id: 2,
+        username: 'owner',
+        role: 'owner' as const,
         organization_id: 1,
         organization_name: 'Родильный дом №1',
       }
     };
   }
-  if (username === 'doctor' && password === 'doctor123') {
+  if (username === 'observer' && password === 'observer123') {
     return {
-      token: 'demo-token-456',
+      token: 'demo-token-789',
       user: {
-        id: 2,
-        username: 'doctor',
-        role: 'user' as const,
+        id: 3,
+        username: 'observer',
+        role: 'observer' as const,
         organization_id: 1,
         organization_name: 'Родильный дом №1',
       }

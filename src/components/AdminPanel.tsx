@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Organization, Department, Doctor, User } from '../types';
+import { Organization, Department, Doctor, User, ROLE_PERMISSIONS } from '../types';
 import {
   getOrganizations, createOrganization, updateOrganization,
   getDepartments, createDepartment, deleteDepartment,
@@ -14,7 +14,10 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
-  const [activeSection, setActiveSection] = useState<'org' | 'dept' | 'doctors' | 'users' | 'password'>('org');
+  const permissions = ROLE_PERMISSIONS[user.role];
+  
+  // Определяем доступные секции
+  const [activeSection, setActiveSection] = useState<string>('');
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -23,21 +26,28 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
 
   // Form states
   const [newOrgName, setNewOrgName] = useState('');
+  const [newOwnerUsername, setNewOwnerUsername] = useState('');
+  const [newOwnerPassword, setNewOwnerPassword] = useState('');
   const [newDeptName, setNewDeptName] = useState('');
   const [newDoctorName, setNewDoctorName] = useState('');
   const [newDoctorSpecialty, setNewDoctorSpecialty] = useState('');
-  const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newUserRole, setNewUserRole] = useState('user');
+  const [newObserverUsername, setNewObserverUsername] = useState('');
+  const [newObserverPassword, setNewObserverPassword] = useState('');
   const [oldPass, setOldPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
 
   useEffect(() => {
-    loadOrgs();
-    if (user.organization_id) {
-      loadDepartments(user.organization_id);
-      loadDoctors(user.organization_id);
+    // Устанавливаем первую доступную секцию
+    if (permissions.canCreateOrganizations) {
+      setActiveSection('org');
+      loadOrgs();
+    } else if (permissions.canManageDepartments) {
+      setActiveSection('dept');
+      if (user.organization_id) {
+        loadDepartments(user.organization_id);
+        loadDoctors(user.organization_id);
+      }
     }
   }, []);
 
@@ -79,8 +89,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
   const handleAddOrg = async () => {
     if (!newOrgName.trim()) return;
     try {
-      await createOrganization(newOrgName);
+      const ownerData = newOwnerUsername.trim() ? { owner_username: newOwnerUsername, owner_password: newOwnerPassword } : {};
+      await createOrganization(newOrgName, ownerData);
       setNewOrgName('');
+      setNewOwnerUsername('');
+      setNewOwnerPassword('');
       loadOrgs();
     } catch (err) { alert('Ошибка'); }
   };
@@ -120,12 +133,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
     } catch (err) { alert('Ошибка'); }
   };
 
-  const handleAddUser = async () => {
-    if (!newUsername.trim() || !newPassword.trim()) return;
+  const handleAddObserver = async () => {
+    if (!newObserverUsername.trim() || !newObserverPassword.trim()) return;
     try {
-      await createUser(newUsername, newPassword, newUserRole, user.role === 'superadmin' ? selectedOrgId : user.organization_id || undefined);
-      setNewUsername('');
-      setNewPassword('');
+      await createUser(newObserverUsername, newObserverPassword, 'observer', user.organization_id || undefined);
+      setNewObserverUsername('');
+      setNewObserverPassword('');
       loadUsers();
     } catch (err) { alert('Ошибка'); }
   };
@@ -152,13 +165,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
     } catch (err) { alert('Ошибка смены пароля'); }
   };
 
-  const sections = [
-    { key: 'org', label: 'Организации', icon: 'fa-building' },
-    { key: 'dept', label: 'Отделения', icon: 'fa-hospital' },
-    { key: 'doctors', label: 'Врачи', icon: 'fa-user-md' },
-    { key: 'users', label: 'Пользователи', icon: 'fa-users' },
-    { key: 'password', label: 'Сменить пароль', icon: 'fa-key' },
-  ];
+  // Определяем доступные секции
+  const sections = [];
+  if (permissions.canCreateOrganizations) {
+    sections.push({ key: 'org', label: 'Организации', icon: 'fa-building' });
+  }
+  if (permissions.canManageDepartments) {
+    sections.push({ key: 'dept', label: 'Отделения', icon: 'fa-hospital' });
+  }
+  if (permissions.canManageDoctors) {
+    sections.push({ key: 'doctors', label: 'Врачи', icon: 'fa-user-md' });
+  }
+  if (permissions.canManageUsers && user.role === 'owner') {
+    sections.push({ key: 'users', label: 'Наблюдатели', icon: 'fa-eye' });
+  }
+  sections.push({ key: 'password', label: 'Сменить пароль', icon: 'fa-key' });
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 pb-4 overflow-y-auto">
@@ -168,7 +189,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-bold text-gray-800">
             <i className="fas fa-cog mr-2"></i>
-            Панель администратора
+            Панель управления
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             <i className="fas fa-times text-gray-500"></i>
@@ -181,7 +202,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
             {sections.map((s) => (
               <button
                 key={s.key}
-                onClick={() => { setActiveSection(s.key as any); if (s.key === 'users') loadUsers(); }}
+                onClick={() => { setActiveSection(s.key); if (s.key === 'users') loadUsers(); }}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 mb-1 transition-colors ${
                   activeSection === s.key ? 'bg-indigo-100 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-100'
                 }`}
@@ -194,27 +215,50 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
 
           {/* Content */}
           <div className="flex-1 p-4 max-h-[60vh] overflow-y-auto">
-            {/* Organizations */}
-            {activeSection === 'org' && (
+            {/* Organizations (superadmin only) */}
+            {activeSection === 'org' && permissions.canCreateOrganizations && (
               <div>
-                {user.role === 'superadmin' && (
-                  <div className="flex gap-2 mb-4">
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <h4 className="text-sm font-bold mb-2">Создать организацию</h4>
+                  <div className="space-y-2">
                     <input
                       type="text"
                       value={newOrgName}
                       onChange={(e) => setNewOrgName(e.target.value)}
                       placeholder="Название организации"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                     />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={newOwnerUsername}
+                        onChange={(e) => setNewOwnerUsername(e.target.value)}
+                        placeholder="Логин владельца (опционально)"
+                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                      <input
+                        type="password"
+                        value={newOwnerPassword}
+                        onChange={(e) => setNewOwnerPassword(e.target.value)}
+                        placeholder="Пароль владельца"
+                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      />
+                    </div>
                     <button onClick={handleAddOrg} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
-                      <i className="fas fa-plus mr-1"></i> Добавить
+                      <i className="fas fa-plus mr-1"></i> Создать организацию
                     </button>
                   </div>
-                )}
+                </div>
                 <div className="space-y-2">
-                  {organizations.map((org) => (
+                  {organizations.map((org: any) => (
                     <div key={org.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                      <span className="text-sm font-medium">{org.name}</span>
+                      <div>
+                        <span className="text-sm font-medium">{org.name}</span>
+                        <span className="text-xs text-gray-500 ml-2">
+                          {org.owner_username ? `Владелец: ${org.owner_username}` : 'Нет владельца'}
+                        </span>
+                        <span className="text-xs text-gray-400 ml-2">({org.records_count || 0} записей)</span>
+                      </div>
                       <div className="flex gap-1">
                         <button
                           onClick={() => setSelectedOrgId(org.id)}
@@ -297,36 +341,28 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
               </div>
             )}
 
-            {/* Users */}
-            {activeSection === 'users' && (
+            {/* Users (observers for owner) */}
+            {activeSection === 'users' && user.role === 'owner' && (
               <div>
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <h4 className="text-sm font-bold mb-2">Добавить пользователя</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                  <h4 className="text-sm font-bold mb-2">Добавить наблюдателя</h4>
+                  <p className="text-xs text-gray-500 mb-2">Наблюдатель может просматривать записи и статистику, но не может их редактировать.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                     <input
                       type="text"
-                      value={newUsername}
-                      onChange={(e) => setNewUsername(e.target.value)}
+                      value={newObserverUsername}
+                      onChange={(e) => setNewObserverUsername(e.target.value)}
                       placeholder="Логин"
                       className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
                     />
                     <input
                       type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      value={newObserverPassword}
+                      onChange={(e) => setNewObserverPassword(e.target.value)}
                       placeholder="Пароль"
                       className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
                     />
-                    <select
-                      value={newUserRole}
-                      onChange={(e) => setNewUserRole(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    >
-                      <option value="user">Пользователь</option>
-                      <option value="admin">Администратор</option>
-                      {user.role === 'superadmin' && <option value="superadmin">Суперадминистратор</option>}
-                    </select>
-                    <button onClick={handleAddUser} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
+                    <button onClick={handleAddObserver} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
                       <i className="fas fa-plus mr-1"></i> Создать
                     </button>
                   </div>
@@ -337,12 +373,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onClose }) => {
                       <div>
                         <span className="text-sm font-medium">{u.username}</span>
                         <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                          u.role === 'superadmin' ? 'bg-red-100 text-red-700' :
-                          u.role === 'admin' ? 'bg-yellow-100 text-yellow-700' :
+                          u.role === 'owner' ? 'bg-yellow-100 text-yellow-700' :
                           'bg-blue-100 text-blue-700'
-                        }`}>{u.role}</span>
+                        }`}>{u.role === 'owner' ? 'Владелец' : 'Наблюдатель'}</span>
                       </div>
-                      {u.id !== user.id && (
+                      {u.id !== user.id && u.role === 'observer' && (
                         <button onClick={() => handleDeleteUser(u.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded">
                           <i className="fas fa-trash text-xs"></i>
                         </button>

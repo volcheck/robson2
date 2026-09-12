@@ -23,11 +23,14 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role ENUM('superadmin', 'admin', 'user') NOT NULL DEFAULT 'user',
-    organization_id INT NULL,
+    role ENUM('superadmin', 'owner', 'observer') NOT NULL DEFAULT 'observer' 
+        COMMENT 'superadmin - суперадминистратор, owner - владелец организации, observer - наблюдатель',
+    organization_id INT NULL COMMENT 'Организация (для owner и observer)',
+    created_by INT NULL COMMENT 'Кем создан пользователь',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_role (role),
     INDEX idx_organization (organization_id)
 ) ENGINE=InnoDB;
@@ -176,6 +179,14 @@ INSERT INTO users (username, password_hash, role) VALUES
 -- Пример организации
 INSERT INTO organizations (name) VALUES ('Родильный дом №1');
 
+-- Владелец организации (пароль: owner123)
+INSERT INTO users (username, password_hash, role, organization_id, created_by) VALUES 
+('owner', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uWByw5yW2S', 'owner', 1, 1);
+
+-- Наблюдатель (пароль: observer123)
+INSERT INTO users (username, password_hash, role, organization_id, created_by) VALUES 
+('observer', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uWByw5yW2S', 'observer', 1, 2);
+
 -- Пример отделений
 INSERT INTO departments (organization_id, name) VALUES 
 (1, 'Приёмное отделение'),
@@ -189,6 +200,3 @@ INSERT INTO doctors (organization_id, full_name, specialty) VALUES
 (1, 'Иванова А.П.', 'Акушер-гинеколог'),
 (1, 'Петрова М.С.', 'Акушер-гинеколог'),
 (1, 'Сидорова Е.В.', 'Акушер-гинеколог');
-
--- Привязываем организацию к супер-админу для тестирования
-UPDATE users SET organization_id = 1 WHERE id = 1;
