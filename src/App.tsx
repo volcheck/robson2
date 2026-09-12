@@ -464,7 +464,19 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
         is_contracted: false,
         presenting_part: '',
         clinical_diagnosis: '',
-        children: [],
+        children: [{
+          order_number: 1,
+          birth_date: '',
+          birth_time: '',
+          apgar_score: '',
+          blood_type: '',
+          rh_factor: '',
+          weight_grams: null,
+          height_cm: null,
+          diagnosis: '',
+          condition_at_birth: 'satisfactory',
+          department_id: null,
+        }],
       });
     }
   }, [record, isNew]);
@@ -680,10 +692,12 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
                 <div className="space-y-2">
                   {formData.children.map((child, idx) => (
                     <div key={idx} className="border border-gray-200 rounded-lg p-3">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <span className="font-bold text-sm">Ребёнок #{child.order_number}</span>
                         <span className="text-xs text-gray-500">Апгар: {child.apgar_score}</span>
                         <span className="text-xs text-gray-500">{child.blood_type} {child.rh_factor}</span>
+                        <span className="text-xs text-gray-500">Вес: {child.weight_grams ? `${child.weight_grams} г` : '—'}</span>
+                        <span className="text-xs text-gray-500">Рост: {child.height_cm ? `${child.height_cm} см` : '—'}</span>
                         <span className={`px-2 py-0.5 rounded-full text-xs ${
                           child.condition_at_birth === 'satisfactory' ? 'bg-green-100 text-green-700' :
                           child.condition_at_birth === 'moderate' ? 'bg-yellow-100 text-yellow-700' :

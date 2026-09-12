@@ -170,6 +170,8 @@ const PrintView: React.FC<PrintViewProps> = ({ record, departments, doctors, onC
                   <th className="border border-gray-400 px-2 py-1.5 text-left text-xs">Дата/время</th>
                   <th className="border border-gray-400 px-2 py-1.5 text-left text-xs">Апгар</th>
                   <th className="border border-gray-400 px-2 py-1.5 text-left text-xs">Гр.крови/Rh</th>
+                  <th className="border border-gray-400 px-2 py-1.5 text-left text-xs">Вес (г)</th>
+                  <th className="border border-gray-400 px-2 py-1.5 text-left text-xs">Рост (см)</th>
                   <th className="border border-gray-400 px-2 py-1.5 text-left text-xs">Состояние</th>
                   <th className="border border-gray-400 px-2 py-1.5 text-left text-xs">Отделение</th>
                 </tr>
@@ -181,6 +183,8 @@ const PrintView: React.FC<PrintViewProps> = ({ record, departments, doctors, onC
                     <td className="border border-gray-400 px-2 py-1.5">{child.birth_date} {child.birth_time}</td>
                     <td className="border border-gray-400 px-2 py-1.5">{child.apgar_score}</td>
                     <td className="border border-gray-400 px-2 py-1.5">{child.blood_type} {child.rh_factor}</td>
+                    <td className="border border-gray-400 px-2 py-1.5">{child.weight_grams || '—'}</td>
+                    <td className="border border-gray-400 px-2 py-1.5">{child.height_cm || '—'}</td>
                     <td className="border border-gray-400 px-2 py-1.5">{getConditionLabel(child.condition_at_birth)}</td>
                     <td className="border border-gray-400 px-2 py-1.5">{departments.find((d) => d.id === child.department_id)?.name || '—'}</td>
                   </tr>

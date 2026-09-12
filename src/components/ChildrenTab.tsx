@@ -17,6 +17,8 @@ const emptyChild: Partial<ChildRecord> = {
   apgar_score: '',
   blood_type: '',
   rh_factor: '',
+  weight_grams: null,
+  height_cm: null,
   diagnosis: '',
   condition_at_birth: 'satisfactory',
   department_id: null,
@@ -180,6 +182,32 @@ const ChildrenTab: React.FC<ChildrenTabProps> = ({ children, birthRecordId, depa
               </select>
             </div>
             <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Вес при рождении (г)</label>
+              <input
+                type="number"
+                min="500"
+                max="7000"
+                step="10"
+                value={editingChild.weight_grams ?? ''}
+                onChange={(e) => setEditingChild({ ...editingChild, weight_grams: e.target.value ? parseInt(e.target.value) : null })}
+                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                placeholder="3500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Рост при рождении (см)</label>
+              <input
+                type="number"
+                min="25"
+                max="65"
+                step="0.1"
+                value={editingChild.height_cm ?? ''}
+                onChange={(e) => setEditingChild({ ...editingChild, height_cm: e.target.value ? parseFloat(e.target.value) : null })}
+                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"
+                placeholder="52"
+              />
+            </div>
+            <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Состояние при рождении</label>
               <select
                 value={editingChild.condition_at_birth || 'satisfactory'}
@@ -253,11 +281,12 @@ const ChildrenTab: React.FC<ChildrenTabProps> = ({ children, birthRecordId, depa
                       {getConditionLabel(child.condition_at_birth)}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs text-gray-600">
                     <span>Дата: {child.birth_date || '—'} {child.birth_time || ''}</span>
                     <span>Апгар: {child.apgar_score || '—'}</span>
                     <span>Группа крови: {child.blood_type || '—'} {child.rh_factor || ''}</span>
-                    <span>Отд.: {departments.find((d) => d.id === child.department_id)?.name || '—'}</span>
+                    <span>Вес: {child.weight_grams ? `${child.weight_grams} г` : '—'}</span>
+                    <span>Рост: {child.height_cm ? `${child.height_cm} см` : '—'}</span>
                   </div>
                   {child.diagnosis && (
                     <p className="text-xs text-gray-500 mt-1">Диагноз: {child.diagnosis}</p>
