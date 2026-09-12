@@ -42,7 +42,7 @@ export const demoBirthRecords: BirthRecord[] = [
     is_contracted: false, first_stage_duration: '05:30', second_stage_duration: '00:45',
     waterless_period_duration: '03:00', preinduction_method: '', induction_method: '',
     children: [
-      { id: 1, birth_record_id: 1, birth_date: fmt(twoDaysAgo), birth_time: '14:15', order_number: 1, apgar_score: '8/9', blood_type: 'I', rh_factor: '+', diagnosis: 'Здоров', condition_at_birth: 'satisfactory', department_id: 5 }
+      { id: 1, birth_record_id: 1, birth_date: fmt(twoDaysAgo), birth_time: '14:15', order_number: 1, apgar_score: '8/9', blood_type: 'I', rh_factor: '+', weight_grams: 3450, height_cm: 52, diagnosis: 'Здоров', condition_at_birth: 'satisfactory', department_id: 5 }
     ]
   },
   {
@@ -57,7 +57,7 @@ export const demoBirthRecords: BirthRecord[] = [
     is_contracted: false, first_stage_duration: '', second_stage_duration: '',
     waterless_period_duration: '', preinduction_method: '', induction_method: '',
     children: [
-      { id: 2, birth_record_id: 2, birth_date: fmt(twoDaysAgo), birth_time: '18:30', order_number: 1, apgar_score: '7/8', blood_type: 'II', rh_factor: '+', diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 }
+      { id: 2, birth_record_id: 2, birth_date: fmt(twoDaysAgo), birth_time: '18:30', order_number: 1, apgar_score: '7/8', blood_type: 'II', rh_factor: '+', weight_grams: 3200, height_cm: 50, diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 }
     ]
   },
   {
@@ -72,7 +72,7 @@ export const demoBirthRecords: BirthRecord[] = [
     is_contracted: false, first_stage_duration: '03:15', second_stage_duration: '00:15',
     waterless_period_duration: '01:30', preinduction_method: '', induction_method: '',
     children: [
-      { id: 3, birth_record_id: 3, birth_date: fmt(yesterday), birth_time: '09:45', order_number: 1, apgar_score: '9/10', blood_type: 'III', rh_factor: '-', diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 }
+      { id: 3, birth_record_id: 3, birth_date: fmt(yesterday), birth_time: '09:45', order_number: 1, apgar_score: '9/10', blood_type: 'III', rh_factor: '-', weight_grams: 3600, height_cm: 53, diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 }
     ]
   },
   {
@@ -87,7 +87,7 @@ export const demoBirthRecords: BirthRecord[] = [
     is_contracted: false, first_stage_duration: '07:30', second_stage_duration: '',
     waterless_period_duration: '05:00', preinduction_method: '', induction_method: 'oxytocin',
     children: [
-      { id: 4, birth_record_id: 4, birth_date: fmt(yesterday), birth_time: '22:10', order_number: 1, apgar_score: '7/8', blood_type: 'I', rh_factor: '+', diagnosis: 'Транзиторное тахипноэ новорождённых', condition_at_birth: 'moderate', department_id: 5 }
+      { id: 4, birth_record_id: 4, birth_date: fmt(yesterday), birth_time: '22:10', order_number: 1, apgar_score: '7/8', blood_type: 'I', rh_factor: '+', weight_grams: 3100, height_cm: 49, diagnosis: 'Транзиторное тахипноэ новорождённых', condition_at_birth: 'moderate', department_id: 5 }
     ]
   },
   {
@@ -102,8 +102,8 @@ export const demoBirthRecords: BirthRecord[] = [
     is_contracted: false, first_stage_duration: '15:00', second_stage_duration: '00:40',
     waterless_period_duration: '02:00', preinduction_method: '', induction_method: 'amniotomy',
     children: [
-      { id: 5, birth_record_id: 5, birth_date: fmt(yesterday), birth_time: '03:20', order_number: 1, apgar_score: '8/9', blood_type: 'II', rh_factor: '+', diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 },
-      { id: 6, birth_record_id: 5, birth_date: fmt(yesterday), birth_time: '03:35', order_number: 2, apgar_score: '7/8', blood_type: 'II', rh_factor: '+', diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 }
+      { id: 5, birth_record_id: 5, birth_date: fmt(yesterday), birth_time: '03:20', order_number: 1, apgar_score: '8/9', blood_type: 'II', rh_factor: '+', weight_grams: 2400, height_cm: 47, diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 },
+      { id: 6, birth_record_id: 5, birth_date: fmt(yesterday), birth_time: '03:35', order_number: 2, apgar_score: '7/8', blood_type: 'II', rh_factor: '+', weight_grams: 2250, height_cm: 46, diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 }
     ]
   },
   {
@@ -118,7 +118,7 @@ export const demoBirthRecords: BirthRecord[] = [
     is_contracted: false, first_stage_duration: '06:00', second_stage_duration: '01:30',
     waterless_period_duration: '04:00', preinduction_method: '', induction_method: '',
     children: [
-      { id: 7, birth_record_id: 6, birth_date: fmt(fourDaysAgo), birth_time: '16:00', order_number: 1, apgar_score: '6/8', blood_type: 'IV', rh_factor: '-', diagnosis: 'Ретинопатия недоношенных - нет', condition_at_birth: 'moderate', department_id: 5 }
+      { id: 7, birth_record_id: 6, birth_date: fmt(fourDaysAgo), birth_time: '16:00', order_number: 1, apgar_score: '6/8', blood_type: 'IV', rh_factor: '-', weight_grams: 3350, height_cm: 51, diagnosis: 'Ретинопатия недоношенных - нет', condition_at_birth: 'moderate', department_id: 5 }
     ]
   },
   {
@@ -133,7 +133,7 @@ export const demoBirthRecords: BirthRecord[] = [
     is_contracted: false, first_stage_duration: '01:30', second_stage_duration: '00:15',
     waterless_period_duration: '00:30', preinduction_method: '', induction_method: '',
     children: [
-      { id: 8, birth_record_id: 7, birth_date: fmt(fiveDaysAgo), birth_time: '23:45', order_number: 1, apgar_score: '6/7', blood_type: 'I', rh_factor: '+', diagnosis: 'Недоношенность 34 нед. ДРН.', condition_at_birth: 'moderate', department_id: 5 }
+      { id: 8, birth_record_id: 7, birth_date: fmt(fiveDaysAgo), birth_time: '23:45', order_number: 1, apgar_score: '6/7', blood_type: 'I', rh_factor: '+', weight_grams: 2100, height_cm: 44, diagnosis: 'Недоношенность 34 нед. ДРН.', condition_at_birth: 'moderate', department_id: 5 }
     ]
   },
   {
@@ -148,7 +148,7 @@ export const demoBirthRecords: BirthRecord[] = [
     is_contracted: false, first_stage_duration: '04:00', second_stage_duration: '00:30',
     waterless_period_duration: '02:00', preinduction_method: '', induction_method: '',
     children: [
-      { id: 9, birth_record_id: 8, birth_date: fmt(today), birth_time: '11:30', order_number: 1, apgar_score: '9/10', blood_type: 'III', rh_factor: '+', diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 }
+      { id: 9, birth_record_id: 8, birth_date: fmt(today), birth_time: '11:30', order_number: 1, apgar_score: '9/10', blood_type: 'III', rh_factor: '+', weight_grams: 3500, height_cm: 52, diagnosis: '', condition_at_birth: 'satisfactory', department_id: 5 }
     ]
   },
 ];

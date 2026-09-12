@@ -70,6 +70,8 @@ export interface ChildRecord {
   apgar_score: string;
   blood_type: string;
   rh_factor: string;
+  weight_grams: number | null;
+  height_cm: number | null;
   diagnosis: string;
   condition_at_birth: 'satisfactory' | 'moderate' | 'severe';
   department_id: number | null;

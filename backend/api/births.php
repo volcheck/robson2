@@ -304,9 +304,9 @@ function deleteRecord(array $data, array $user): void {
 function saveChild(PDO $db, int $birthRecordId, array $child): void {
     $sql = "INSERT INTO children (
         birth_record_id, birth_date, birth_time, order_number,
-        apgar_score, blood_type, rh_factor, diagnosis,
-        condition_at_birth, department_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        apgar_score, blood_type, rh_factor, weight_grams, height_cm,
+        diagnosis, condition_at_birth, department_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $params = [
         $birthRecordId,
@@ -316,6 +316,8 @@ function saveChild(PDO $db, int $birthRecordId, array $child): void {
         $child['apgar_score'] ?? '',
         $child['blood_type'] ?? '',
         $child['rh_factor'] ?? '',
+        $child['weight_grams'] ?? null,
+        $child['height_cm'] ?? null,
         $child['diagnosis'] ?? '',
         $child['condition_at_birth'] ?? 'satisfactory',
         $child['department_id'] ?? null,

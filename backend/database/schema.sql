@@ -143,6 +143,8 @@ CREATE TABLE children (
     apgar_score VARCHAR(20) DEFAULT '' COMMENT 'Оценка по Апгар (1 мин / 5 мин)',
     blood_type ENUM('I', 'II', 'III', 'IV', '') DEFAULT '' COMMENT 'Группа крови',
     rh_factor ENUM('+', '-', '') DEFAULT '' COMMENT 'Резус-фактор',
+    weight_grams INT NULL COMMENT 'Вес при рождении в граммах',
+    height_cm DECIMAL(4,1) NULL COMMENT 'Рост при рождении в сантиметрах',
     diagnosis TEXT NULL COMMENT 'Полный текст клинического диагноза ребёнка',
     condition_at_birth ENUM('satisfactory', 'moderate', 'severe') DEFAULT 'satisfactory' COMMENT 'Состояние при рождении',
     department_id INT NULL COMMENT 'Отделение',

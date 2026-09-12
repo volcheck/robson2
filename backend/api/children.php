@@ -56,6 +56,8 @@ function getChildren(int $birthRecordId, array $user): void {
         $child['birth_record_id'] = (int)$child['birth_record_id'];
         $child['order_number'] = (int)$child['order_number'];
         if ($child['department_id']) $child['department_id'] = (int)$child['department_id'];
+        if ($child['weight_grams'] !== null) $child['weight_grams'] = (int)$child['weight_grams'];
+        if ($child['height_cm'] !== null) $child['height_cm'] = (float)$child['height_cm'];
     }
     
     jsonResponse($children);
@@ -81,9 +83,9 @@ function createChild(array $data, array $user): void {
     
     $sql = "INSERT INTO children (
         birth_record_id, birth_date, birth_time, order_number,
-        apgar_score, blood_type, rh_factor, diagnosis,
-        condition_at_birth, department_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        apgar_score, blood_type, rh_factor, weight_grams, height_cm,
+        diagnosis, condition_at_birth, department_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $params = [
         $birthRecordId,
@@ -93,6 +95,8 @@ function createChild(array $data, array $user): void {
         $data['apgar_score'] ?? '',
         $data['blood_type'] ?? '',
         $data['rh_factor'] ?? '',
+        $data['weight_grams'] ?? null,
+        $data['height_cm'] ?? null,
         $data['diagnosis'] ?? '',
         $data['condition_at_birth'] ?? 'satisfactory',
         $data['department_id'] ?? null,
@@ -112,6 +116,8 @@ function createChild(array $data, array $user): void {
     $child['birth_record_id'] = (int)$child['birth_record_id'];
     $child['order_number'] = (int)$child['order_number'];
     if ($child['department_id']) $child['department_id'] = (int)$child['department_id'];
+    if ($child['weight_grams'] !== null) $child['weight_grams'] = (int)$child['weight_grams'];
+    if ($child['height_cm'] !== null) $child['height_cm'] = (float)$child['height_cm'];
     
     jsonResponse($child);
 }
@@ -141,6 +147,7 @@ function updateChild(array $data, array $user): void {
     $sql = "UPDATE children SET
         birth_date = ?, birth_time = ?, order_number = ?,
         apgar_score = ?, blood_type = ?, rh_factor = ?,
+        weight_grams = ?, height_cm = ?,
         diagnosis = ?, condition_at_birth = ?, department_id = ?
         WHERE id = ?";
     
@@ -151,6 +158,8 @@ function updateChild(array $data, array $user): void {
         $data['apgar_score'] ?? '',
         $data['blood_type'] ?? '',
         $data['rh_factor'] ?? '',
+        $data['weight_grams'] ?? null,
+        $data['height_cm'] ?? null,
         $data['diagnosis'] ?? '',
         $data['condition_at_birth'] ?? 'satisfactory',
         $data['department_id'] ?? null,
