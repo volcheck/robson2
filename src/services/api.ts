@@ -113,8 +113,8 @@ export const getOrganizations = async () => {
   return response.data as Organization[];
 };
 
-export const createOrganization = async (name: string) => {
-  const response = await api.post('/organizations.php', { action: 'create', name });
+export const createOrganization = async (name: string, ownerData?: { owner_username?: string; owner_password?: string }) => {
+  const response = await api.post('/organizations.php', { action: 'create', name, ...ownerData });
   return response.data;
 };
 

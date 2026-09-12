@@ -1,13 +1,21 @@
 <?php
 /**
  * API для управления пользователями
+ * - Суперадминистратор: создаёт организации и назначает владельцев
+ * - Владелец: создаёт наблюдателей своей организации
+ * - Наблюдатель: нет доступа
  */
 require_once __DIR__ . '/config.php';
 
-$user = requireAdmin();
+$user = requireAuth();
 $data = getRequestData();
 $action = $data['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Наблюдатель не может управлять пользователями
+if ($user['role'] === 'observer') {
+    jsonError('Недостаточно прав', 403);
+}
 
 if ($method === 'GET') {
     getUsers($user);
@@ -29,6 +37,7 @@ function getUsers(array $currentUser): void {
     $db = getDB();
     
     if ($currentUser['role'] === 'superadmin') {
+        // Суперадмин видит всех пользователей
         if (isset($_GET['organization_id'])) {
             $stmt = $db->prepare('SELECT id, username, role, organization_id, created_at FROM users WHERE organization_id = ? ORDER BY username');
             $stmt->execute([(int)$_GET['organization_id']]);
@@ -36,6 +45,7 @@ function getUsers(array $currentUser): void {
             $stmt = $db->query('SELECT id, username, role, organization_id, created_at FROM users ORDER BY username');
         }
     } else {
+        // Владелец видит только пользователей своей организации
         $stmt = $db->prepare('SELECT id, username, role, organization_id, created_at FROM users WHERE organization_id = ? ORDER BY username');
         $stmt->execute([$currentUser['organization_id']]);
     }
@@ -53,7 +63,7 @@ function getUsers(array $currentUser): void {
 function createUser(array $data, array $currentUser): void {
     $username = trim($data['username'] ?? '');
     $password = $data['password'] ?? '';
-    $role = $data['role'] ?? 'user';
+    $role = $data['role'] ?? 'observer';
     $orgId = $data['organization_id'] ?? $currentUser['organization_id'] ?? null;
     
     if (empty($username) || empty($password)) {
@@ -64,9 +74,23 @@ function createUser(array $data, array $currentUser): void {
         jsonError('Пароль должен быть не менее 6 символов');
     }
     
-    // Только суперадмин может создавать суперадминов
-    if ($role === 'superadmin' && $currentUser['role'] !== 'superadmin') {
-        jsonError('Недостаточно прав для создания суперадминистратора', 403);
+    // Проверка прав на создание ролей
+    if ($currentUser['role'] === 'owner') {
+        // Владелец может создавать только наблюдателей
+        if ($role !== 'observer') {
+            jsonError('Владелец может создавать только наблюдателей', 403);
+        }
+        // И только для своей организации
+        if ($orgId != $currentUser['organization_id']) {
+            jsonError('Нет доступа к этой организации', 403);
+        }
+    }
+    
+    if ($currentUser['role'] === 'superadmin') {
+        // Суперадмин может создавать только владельцев (наблюдателей создаёт владелец)
+        if ($role !== 'owner') {
+            jsonError('Суперадминистратор создаёт только владельцев организаций', 403);
+        }
     }
     
     // Проверяем уникальность логина
@@ -77,10 +101,20 @@ function createUser(array $data, array $currentUser): void {
         jsonError('Пользователь с таким логином уже существует');
     }
     
+    // Проверяем, что у организации ещё нет владельца (если создаём владельца)
+    if ($role === 'owner' && $orgId) {
+        $stmt = $db->prepare('SELECT id, username FROM users WHERE organization_id = ? AND role = "owner"');
+        $stmt->execute([$orgId]);
+        $existingOwner = $stmt->fetch();
+        if ($existingOwner) {
+            jsonError('У организации уже есть владелец: ' . $existingOwner['username']);
+        }
+    }
+    
     $hash = password_hash($password, PASSWORD_BCRYPT);
     
-    $stmt = $db->prepare('INSERT INTO users (username, password_hash, role, organization_id) VALUES (?, ?, ?, ?)');
-    $stmt->execute([$username, $hash, $role, $orgId]);
+    $stmt = $db->prepare('INSERT INTO users (username, password_hash, role, organization_id, created_by) VALUES (?, ?, ?, ?, ?)');
+    $stmt->execute([$username, $hash, $role, $orgId, $currentUser['id']]);
     
     jsonResponse(['id' => $db->lastInsertId(), 'message' => 'Пользователь создан']);
 }
@@ -97,28 +131,31 @@ function deleteUser(array $data, array $currentUser): void {
         jsonError('Нельзя удалить свою учётную запись');
     }
     
+    // Нельзя удалить суперадмина
+    $db = getDB();
+    $stmt = $db->prepare('SELECT role, organization_id FROM users WHERE id = ?');
+    $stmt->execute([$id]);
+    $target = $stmt->fetch();
+    
+    if (!$target) {
+        jsonError('Пользователь не найден', 404);
+    }
+    
+    if ($target['role'] === 'superadmin') {
+        jsonError('Нельзя удалить суперадминистратора', 403);
+    }
+    
     // Проверяем доступ
-    if ($currentUser['role'] !== 'superadmin') {
-        $db = getDB();
-        $stmt = $db->prepare('SELECT organization_id, role FROM users WHERE id = ?');
-        $stmt->execute([$id]);
-        $target = $stmt->fetch();
-        
-        if (!$target) {
-            jsonError('Пользователь не найден', 404);
+    if ($currentUser['role'] === 'owner') {
+        // Владелец может удалять только наблюдателей своей организации
+        if ($target['role'] !== 'observer') {
+            jsonError('Владелец может удалять только наблюдателей', 403);
         }
-        
         if ($target['organization_id'] != $currentUser['organization_id']) {
             jsonError('Нет доступа', 403);
         }
-        
-        // Админ не может удалить другого админа или суперадмина
-        if (in_array($target['role'], ['admin', 'superadmin']) && $currentUser['role'] !== 'superadmin') {
-            jsonError('Недостаточно прав', 403);
-        }
     }
     
-    $db = getDB();
     $stmt = $db->prepare('DELETE FROM users WHERE id = ?');
     $stmt->execute([$id]);
     

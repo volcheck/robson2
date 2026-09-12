@@ -5,7 +5,7 @@ import {
   demoLogin, demoBirthRecords, demoDashboardData,
   demoDepartments, demoDoctors
 } from './services/demoData';
-import { ROBSON_GROUPS, ROBSON_GROUP_LABELS } from './types';
+import { ROBSON_GROUPS, ROBSON_GROUP_LABELS, ROLE_PERMISSIONS } from './types';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import BirthRecordsTable from './components/BirthRecordsTable';
@@ -120,18 +120,18 @@ function App() {
             <div>
               <h1 className="text-lg font-bold text-gray-800">Классификация Робсона</h1>
               <p className="text-xs text-gray-500">
-                {user.organization_name || 'Организация'} • {user.username}
+                {user.organization_name || 'Все организации'} • {user.username}
                 <span className={`ml-2 px-1.5 py-0.5 rounded text-xs ${
                   user.role === 'superadmin' ? 'bg-red-100 text-red-700' :
-                  user.role === 'admin' ? 'bg-yellow-100 text-yellow-700' :
+                  user.role === 'owner' ? 'bg-yellow-100 text-yellow-700' :
                   'bg-blue-100 text-blue-700'
-                }`}>{user.role === 'superadmin' ? 'Суперадмин' : user.role === 'admin' ? 'Админ' : 'Пользователь'}</span>
+                }`}>{ROLE_PERMISSIONS[user.role].label}</span>
                 {DEMO_MODE && <span className="ml-2 px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-xs">DEMO</span>}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {(user.role === 'admin' || user.role === 'superadmin') && (
+            {ROLE_PERMISSIONS[user.role].canManageDepartments && (
               <button
                 onClick={() => setShowAdmin(true)}
                 className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg flex items-center gap-2"
@@ -165,6 +165,7 @@ function App() {
           onAdd={handleAdd}
           onPrint={handlePrint}
           onDelete={handleDelete}
+          canEdit={ROLE_PERMISSIONS[user.role].canEditRecords}
         />
       </main>
 
@@ -178,6 +179,7 @@ function App() {
           departments={demoDepartments}
           doctors={demoDoctors}
           onSave={handleSave}
+          readOnly={!ROLE_PERMISSIONS[user.role].canEditRecords}
         />
       )}
 
@@ -259,7 +261,7 @@ function DashboardCards({ data }: { data: DashboardData }) {
 }
 
 // Demo table component
-function DemoTable({ records, departments, doctors, onEdit, onAdd, onPrint, onDelete }: {
+function DemoTable({ records, departments, doctors, onEdit, onAdd, onPrint, onDelete, canEdit }: {
   records: BirthRecord[];
   departments: Department[];
   doctors: Doctor[];
@@ -267,6 +269,7 @@ function DemoTable({ records, departments, doctors, onEdit, onAdd, onPrint, onDe
   onAdd: () => void;
   onPrint: (r: BirthRecord) => void;
   onDelete: (id: number) => void;
+  canEdit: boolean;
 }) {
   const [search, setSearch] = useState('');
   const [filterRobson, setFilterRobson] = useState('');
@@ -312,13 +315,16 @@ function DemoTable({ records, departments, doctors, onEdit, onAdd, onPrint, onDe
       {/* Toolbar */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex flex-wrap gap-3 items-center justify-between">
-          <button
-            onClick={onAdd}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
-          >
-            <i className="fas fa-plus"></i>
-            Добавить запись
-          </button>
+          {canEdit && (
+            <button
+              onClick={onAdd}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
+            >
+              <i className="fas fa-plus"></i>
+              Добавить запись
+            </button>
+          )}
+          {!canEdit && <div className="text-sm text-gray-500"><i className="fas fa-eye mr-1"></i>Режим просмотра</div>}
           <div className="flex flex-wrap gap-2">
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
@@ -402,15 +408,17 @@ function DemoTable({ records, departments, doctors, onEdit, onAdd, onPrint, onDe
                   <td className="px-3 py-3 text-gray-600">{getDocName(record.attending_doctor_id)}</td>
                   <td className="px-3 py-3">
                     <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => onEdit(record)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="Редактировать">
-                        <i className="fas fa-edit text-xs"></i>
+                      <button onClick={() => onEdit(record)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title={canEdit ? "Редактировать" : "Просмотр"}>
+                        <i className={`fas ${canEdit ? 'fa-edit' : 'fa-eye'} text-xs`}></i>
                       </button>
                       <button onClick={() => onPrint(record)} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Печать">
                         <i className="fas fa-print text-xs"></i>
                       </button>
-                      <button onClick={() => record.id && onDelete(record.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Удалить">
-                        <i className="fas fa-trash text-xs"></i>
-                      </button>
+                      {canEdit && (
+                        <button onClick={() => record.id && onDelete(record.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Удалить">
+                          <i className="fas fa-trash text-xs"></i>
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -428,7 +436,7 @@ function DemoTable({ records, departments, doctors, onEdit, onAdd, onPrint, onDe
 }
 
 // Demo modal component
-function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSave }: {
+function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSave, readOnly }: {
   isOpen: boolean;
   onClose: () => void;
   record: BirthRecord | null;
@@ -436,6 +444,7 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
   departments: Department[];
   doctors: Doctor[];
   onSave: (record: BirthRecord) => void;
+  readOnly?: boolean;
 }) {
   const [formData, setFormData] = useState<Partial<BirthRecord>>(record || {});
   const [activeTab, setActiveTab] = useState<'main' | 'children'>('main');
@@ -478,7 +487,8 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-bold text-gray-800">
-            {isNew ? 'Новая запись о родах' : `Запись № ${formData.medical_record_number}`}
+            {readOnly ? <><i className="fas fa-eye mr-2 text-blue-500"></i>Просмотр записи № {formData.medical_record_number}</> :
+             isNew ? 'Новая запись о родах' : `Запись № ${formData.medical_record_number}`}
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
             <i className="fas fa-times text-gray-500"></i>
@@ -512,12 +522,12 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">№ истории родов *</label>
                 <input type="text" value={formData.medical_record_number || ''} onChange={(e) => handleChange('medical_record_number', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" required />
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" required disabled={readOnly} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Группа по Робсону *</label>
                 <select value={formData.robson_code || '1'} onChange={(e) => handleChange('robson_code', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" disabled={readOnly}>
                   {ROBSON_GROUPS.map((g) => (
                     <option key={g} value={g}>{g} — {ROBSON_GROUP_LABELS[g]}</option>
                   ))}
@@ -525,46 +535,46 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Дата поступления</label>
-                <input type="date" value={formData.admission_date || ''} onChange={(e) => handleChange('admission_date', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" />
+                <input type="date" value={formData.admission_date || ''} onChange={(e) => handleChange('admission_date', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Время поступления</label>
-                <input type="time" value={formData.admission_time || ''} onChange={(e) => handleChange('admission_time', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" />
+                <input type="time" value={formData.admission_time || ''} onChange={(e) => handleChange('admission_time', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Отделение поступления</label>
-                <select value={formData.admission_department_id || ''} onChange={(e) => handleChange('admission_department_id', e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                <select value={formData.admission_department_id || ''} onChange={(e) => handleChange('admission_department_id', e.target.value ? parseInt(e.target.value) : null)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100">
                   <option value="">—</option>
                   {departments.map((d) => (<option key={d.id} value={d.id}>{d.name}</option>))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Дата родов</label>
-                <input type="date" value={formData.delivery_date || ''} onChange={(e) => handleChange('delivery_date', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" />
+                <input type="date" value={formData.delivery_date || ''} onChange={(e) => handleChange('delivery_date', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Время родов</label>
-                <input type="time" value={formData.delivery_time || ''} onChange={(e) => handleChange('delivery_time', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" />
+                <input type="time" value={formData.delivery_time || ''} onChange={(e) => handleChange('delivery_time', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Дата выписки</label>
-                <input type="date" value={formData.discharge_date || ''} onChange={(e) => handleChange('discharge_date', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" />
+                <input type="date" value={formData.discharge_date || ''} onChange={(e) => handleChange('discharge_date', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Метод родоразрешения</label>
-                <select value={formData.is_cesarean ? 'cesarean' : (formData.vaginal_delivery_method || '')}
+                <select value={formData.is_cesarean ? 'cesarean' : (formData.vaginal_delivery_method || '')} disabled={readOnly}
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val === 'cesarean') { handleChange('is_cesarean', true); handleChange('vaginal_delivery_method', ''); }
                     else { handleChange('is_cesarean', false); handleChange('vaginal_delivery_method', val); }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100">
                   <option value="">—</option>
                   <option value="cesarean">Кесарево сечение</option>
                   <option value="spontaneous">Самопроизвольные роды</option>
@@ -574,66 +584,66 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Срок беременности (недели)</label>
-                <input type="number" min="22" max="43" value={formData.gestational_age_weeks || 40} onChange={(e) => handleChange('gestational_age_weeks', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" />
+                <input type="number" min="22" max="43" value={formData.gestational_age_weeks || 40} onChange={(e) => handleChange('gestational_age_weeks', parseInt(e.target.value))} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Врач, ведущий роды</label>
-                <select value={formData.attending_doctor_id || ''} onChange={(e) => handleChange('attending_doctor_id', e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                <select value={formData.attending_doctor_id || ''} onChange={(e) => handleChange('attending_doctor_id', e.target.value ? parseInt(e.target.value) : null)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100">
                   <option value="">—</option>
                   {doctors.map((d) => (<option key={d.id} value={d.id}>{d.full_name}</option>))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Врач отд. патологии беременности</label>
-                <select value={formData.pathology_doctor_id || ''} onChange={(e) => handleChange('pathology_doctor_id', e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                <select value={formData.pathology_doctor_id || ''} onChange={(e) => handleChange('pathology_doctor_id', e.target.value ? parseInt(e.target.value) : null)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100">
                   <option value="">—</option>
                   {doctors.map((d) => (<option key={d.id} value={d.id}>{d.full_name}</option>))}
                 </select>
               </div>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={formData.has_uterine_scar || false} onChange={(e) => handleChange('has_uterine_scar', e.target.checked)}
+                  <input type="checkbox" checked={formData.has_uterine_scar || false} onChange={(e) => handleChange('has_uterine_scar', e.target.checked)} disabled={readOnly}
                     className="w-4 h-4 text-indigo-600 rounded" />
                   <span className="text-sm text-gray-700">Рубец на матке</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={formData.is_contracted || false} onChange={(e) => handleChange('is_contracted', e.target.checked)}
+                  <input type="checkbox" checked={formData.is_contracted || false} onChange={(e) => handleChange('is_contracted', e.target.checked)} disabled={readOnly}
                     className="w-4 h-4 text-indigo-600 rounded" />
                   <span className="text-sm text-gray-700">Контрактные роды</span>
                 </label>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">К-во предшествующих КС</label>
-                <input type="number" min="0" max="5" value={formData.previous_cesarean_count || 0} onChange={(e) => handleChange('previous_cesarean_count', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" />
+                <input type="number" min="0" max="5" value={formData.previous_cesarean_count || 0} onChange={(e) => handleChange('previous_cesarean_count', parseInt(e.target.value))} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Предлежащая часть</label>
-                <input type="text" value={formData.presenting_part || ''} onChange={(e) => handleChange('presenting_part', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Головное, тазовое..." />
+                <input type="text" value={formData.presenting_part || ''} onChange={(e) => handleChange('presenting_part', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" placeholder="Головное, тазовое..." />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">1-й период родов</label>
-                <input type="text" value={formData.first_stage_duration || ''} onChange={(e) => handleChange('first_stage_duration', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="чч:мм" />
+                <input type="text" value={formData.first_stage_duration || ''} onChange={(e) => handleChange('first_stage_duration', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" placeholder="чч:мм" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">2-й период родов</label>
-                <input type="text" value={formData.second_stage_duration || ''} onChange={(e) => handleChange('second_stage_duration', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="чч:мм" />
+                <input type="text" value={formData.second_stage_duration || ''} onChange={(e) => handleChange('second_stage_duration', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" placeholder="чч:мм" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Безводный период</label>
-                <input type="text" value={formData.waterless_period_duration || ''} onChange={(e) => handleChange('waterless_period_duration', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" placeholder="чч:мм" />
+                <input type="text" value={formData.waterless_period_duration || ''} onChange={(e) => handleChange('waterless_period_duration', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" placeholder="чч:мм" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Метод преиндукции</label>
-                <select value={formData.preinduction_method || ''} onChange={(e) => handleChange('preinduction_method', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                <select value={formData.preinduction_method || ''} onChange={(e) => handleChange('preinduction_method', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100">
                   <option value="">—</option>
                   <option value="mifepristone">Мифепристон</option>
                   <option value="folley">Катетер Фолея</option>
@@ -641,8 +651,8 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Метод индукции</label>
-                <select value={formData.induction_method || ''} onChange={(e) => handleChange('induction_method', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                <select value={formData.induction_method || ''} onChange={(e) => handleChange('induction_method', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100">
                   <option value="">—</option>
                   <option value="mifepristone">Мифепристон</option>
                   <option value="folley">Катетер Фолея</option>
@@ -652,8 +662,8 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-medium text-gray-600 mb-1">Клинический диагноз</label>
-                <textarea value={formData.clinical_diagnosis || ''} onChange={(e) => handleChange('clinical_diagnosis', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500" rows={3}
+                <textarea value={formData.clinical_diagnosis || ''} onChange={(e) => handleChange('clinical_diagnosis', e.target.value)} disabled={readOnly}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100" rows={3}
                   placeholder="Полный текст клинического диагноза..." />
               </div>
             </div>
@@ -694,12 +704,14 @@ function DemoModal({ isOpen, onClose, record, isNew, departments, doctors, onSav
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200">
           <button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-            Отмена
+            {readOnly ? 'Закрыть' : 'Отмена'}
           </button>
-          <button onClick={handleSave} className="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
-            <i className="fas fa-save"></i>
-            Сохранить
-          </button>
+          {!readOnly && (
+            <button onClick={handleSave} className="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+              <i className="fas fa-save"></i>
+              Сохранить
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -132,14 +132,28 @@ function requireAuth(): array {
 }
 
 /**
- * Требование роли администратора
+ * Требование роли владельца организации
  */
-function requireAdmin(): array {
+function requireOwner(): array {
     $user = requireAuth();
-    if (!in_array($user['role'], ['admin', 'superadmin'])) {
-        jsonError('Недостаточно прав', 403);
+    if (!in_array($user['role'], ['owner', 'superadmin'])) {
+        jsonError('Недостаточно прав. Требуются права владельца организации', 403);
     }
     return $user;
+}
+
+/**
+ * Проверка, что пользователь может редактировать (owner или superadmin)
+ */
+function canEdit($user): bool {
+    return in_array($user['role'], ['owner', 'superadmin']);
+}
+
+/**
+ * Проверка, что пользователь может просматривать (любая роль)
+ */
+function canView($user): bool {
+    return in_array($user['role'], ['owner', 'observer', 'superadmin']);
 }
 
 /**

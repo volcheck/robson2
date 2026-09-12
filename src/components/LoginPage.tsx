@@ -104,8 +104,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <p className="text-xs text-blue-700 font-medium mb-1">
             <i className="fas fa-info-circle mr-1"></i> Демо-доступ:
           </p>
-          <p className="text-xs text-blue-600">Логин: <code className="bg-blue-100 px-1 rounded">admin</code> Пароль: <code className="bg-blue-100 px-1 rounded">admin123</code></p>
-          <p className="text-xs text-blue-600 mt-1">Логин: <code className="bg-blue-100 px-1 rounded">doctor</code> Пароль: <code className="bg-blue-100 px-1 rounded">doctor123</code></p>
+          <div className="space-y-1">
+            <p className="text-xs text-blue-600">
+              <span className="font-medium">Суперадмин:</span> <code className="bg-blue-100 px-1 rounded">admin</code> / <code className="bg-blue-100 px-1 rounded">admin123</code>
+            </p>
+            <p className="text-xs text-blue-600">
+              <span className="font-medium">Владелец:</span> <code className="bg-blue-100 px-1 rounded">owner</code> / <code className="bg-blue-100 px-1 rounded">owner123</code>
+            </p>
+            <p className="text-xs text-blue-600">
+              <span className="font-medium">Наблюдатель:</span> <code className="bg-blue-100 px-1 rounded">observer</code> / <code className="bg-blue-100 px-1 rounded">observer123</code>
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -1,10 +1,11 @@
 <?php
 /**
  * API для управления врачами
+ * Доступ: владелец организации или суперадминистратор
  */
 require_once __DIR__ . '/config.php';
 
-$user = requireAdmin();
+$user = requireOwner(); // Только owner или superadmin
 $data = getRequestData();
 $action = $data['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
@@ -57,7 +58,7 @@ function createDoctor(array $data, array $user): void {
     
     // Проверяем доступ
     if ($user['role'] !== 'superadmin' && $orgId != $user['organization_id']) {
-        jsonError('Нет доступа', 403);
+        jsonError('Нет доступа к этой организации', 403);
     }
     
     $db = getDB();
